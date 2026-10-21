@@ -1,5 +1,3 @@
-' Functions that responsible for tokens'
-
 from datetime import datetime, timedelta, timezone
 import uuid
 
@@ -33,5 +31,5 @@ def decode_access_token(token: str) -> dict:
         if payload.get('type') != 'access':
             raise jwt.InvalidTokenError('Invalid token type')
         return payload
-    except jwt.InvalidTokenError as e:
-        raise InvalidToken()
+    except jwt.InvalidTokenError as exc:
+        raise InvalidToken() from exc

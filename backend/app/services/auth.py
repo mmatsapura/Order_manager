@@ -26,9 +26,9 @@ class AuthService:
         user = await self.user_repository.get_user_by_email(data.email)
         if user is None:
             raise InvalidCredentials()
-        if not (user.is_active):
+        if not user.is_active:
             raise InvalidCredentials()
-        if not (verify_password(data.password, user.hashed_password)):
+        if not verify_password(data.password, user.hashed_password):
             raise InvalidCredentials()
         token = create_access_token(user.id)
         return TokenResponse(access_token=token)

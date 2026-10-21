@@ -37,6 +37,8 @@ class OrderService:
             raise OrderNotFound()
         if order.status not in CANCELLABLE:
             raise OrderCanNotBeCancelled(order.status)
+        if self.notification_repo is None:
+            raise RuntimeError("notification_repo is required to cancel an order")
         previous = order.status
         await self.order_repo.update_order(order_id, status=OrderStatus.CANCELLED)
         await self.log_status(order_id, OrderStatus.CANCELLED, from_status=previous)
@@ -45,6 +47,8 @@ class OrderService:
         return order
 
     async def create_order(self, order: OrderCreate) -> Order:
+        if self.product_repo is None or self.rabbit is None:
+            raise RuntimeError("product_repo and rabbit are required to create an order")
         items = []
         for line in order.items:
             product = await self.product_repo.get_product_by_id(line.product_id)
@@ -57,14 +61,18 @@ class OrderService:
         await self.log_status(new_order.order_id, OrderStatus.CREATED)
         try:
             await publish_order(self.rabbit, new_order.order_id, attempt=0)
-            await self.order_repo.update_order(new_order.order_id, status=OrderStatus.QUEUED)
-            await self.log_status(new_order.order_id, OrderStatus.QUEUED, from_status=OrderStatus.CREATED)
-            new_order.status = OrderStatus.QUEUED
-            return new_order
         except Exception as exc:
-            await self.order_repo.update_order(new_order.order_id, status=OrderStatus.FAILED, error_message=str(exc))
+            await self.order_repo.update_order(
+                new_order.order_id,
+                status=OrderStatus.FAILED,
+                error_message=str(exc),
+            )
             await self.log_status(new_order.order_id, OrderStatus.FAILED, from_status=OrderStatus.CREATED)
             raise QueueUnavailable() from exc
+        await self.order_repo.update_order(new_order.order_id, status=OrderStatus.QUEUED)
+        await self.log_status(new_order.order_id, OrderStatus.QUEUED, from_status=OrderStatus.CREATED)
+        new_order.status = OrderStatus.QUEUED
+        return new_order
 
     async def get_order_by_id(self, order_id: str) -> Order:
         order = await self.order_repo.get_order_by_id(order_id)
@@ -90,11 +98,22 @@ class OrderService:
         allowed = MANUAL_TRANSITION.get(order.status, set())
         if body.status not in allowed:
             raise OrderCannotBeUpdated()
+        if body.status == OrderStatus.QUEUED and self.rabbit is None:
+            raise QueueUnavailable()
         previous = order.status
         await self.order_repo.update_order(order_id, status=body.status)
         await self.log_status(order_id, body.status, from_status=previous)
         if body.status == OrderStatus.QUEUED:
-            await publish_order(self.rabbit, order.order_id, attempt=0)
+            try:
+                await publish_order(self.rabbit, order.order_id, attempt=0)
+            except Exception as exc:
+                await self.order_repo.update_order(
+                    order_id,
+                    status=OrderStatus.FAILED,
+                    error_message=str(exc),
+                )
+                await self.log_status(order_id, OrderStatus.FAILED, from_status=body.status)
+                raise QueueUnavailable() from exc
         order.status = body.status
         return order
 

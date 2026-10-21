@@ -1,7 +1,5 @@
 import aio_pika
-from aio_pika.abc import AbstractChannel, AbstractConnection, AbstractQueue
-
-from app.core.config import settings
+from aio_pika.abc import AbstractChannel
 
 
 QUEUE_NAME = 'orders'
@@ -22,9 +20,8 @@ class RabbitMQ:
         return
 
     async def close(self) -> None:
-        if self._connection is not None:
-            if not (self._connection.is_closed):
-                await self._connection.close()
+        if self._connection is not None and not self._connection.is_closed:
+            await self._connection.close()
         self._connection = None
         self._channel = None
         self.queue = None
@@ -33,14 +30,11 @@ class RabbitMQ:
     @property
     def channel(self) -> AbstractChannel:
         if self._channel is None:
-            raise RuntimeError('RabitMQ is not connected')
+            raise RuntimeError("RabbitMQ is not connected")
         return self._channel
 
     async def ping(self) -> None:
-        if self._connection is not None:
-            if self._connection.is_closed:
-                raise RuntimeError('RabbitMQ is not connected')
-        if self._channel is None:
-            raise RuntimeError('RabbitMQ channel is closed')
-        if self._channel.is_closed:
-            raise RuntimeError('RabbitMQ channel is closed')
+        if self._connection is None or self._connection.is_closed:
+            raise RuntimeError("RabbitMQ is not connected")
+        if self._channel is None or self._channel.is_closed:
+            raise RuntimeError("RabbitMQ channel is closed")

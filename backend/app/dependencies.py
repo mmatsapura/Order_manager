@@ -1,17 +1,17 @@
-from fastapi import Depends, Request, HTTPException
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends, HTTPException, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pymongo.asynchronous.database import AsyncDatabase
 
-from app.core.security import decode_access_token
-from app.repositories.user import UserRepository
-from app.repositories.product import ProductRepository
-from app.repositories.order_event import OrderEventRepository
-from app.repositories.notification import NotificationRepository
 from app.core.exceptions import InvalidToken
-from app.models.user import User
-from app.repositories.order import OrderRepository
-from app.queue.connection import RabbitMQ
+from app.core.security import decode_access_token
 from app.db.redis import RedisDB
+from app.models.user import User
+from app.queue.connection import RabbitMQ
+from app.repositories.notification import NotificationRepository
+from app.repositories.order import OrderRepository
+from app.repositories.order_event import OrderEventRepository
+from app.repositories.product import ProductRepository
+from app.repositories.user import UserRepository
 
 
 bearer_token = HTTPBearer(auto_error=False)
@@ -49,18 +49,20 @@ def get_order_event_repository(db: AsyncDatabase = Depends(get_db)) -> OrderEven
     return OrderEventRepository(db)
 
 
-async def get_current_user(credentials: (HTTPAuthorizationCredentials | None) = Depends(bearer_token), repo: UserRepository = Depends(get_user_repository), redis: RedisDB = Depends(get_redis)) -> User:
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_token),
+    repo: UserRepository = Depends(get_user_repository),
+    redis: RedisDB = Depends(get_redis),
+) -> User:
     if credentials is None:
-        raise HTTPException(status_code=401, detail='Unauthorized')
+        raise HTTPException(status_code=401, detail="Unauthorized")
     try:
         payload = decode_access_token(credentials.credentials)
-        if await redis.is_blacklisted(payload['jti']):
-            raise HTTPException(status_code=401, detail='Invalid token')
-        user = await repo.get_user_by_id(payload['sub'])
-        if user is None:
-            raise HTTPException(status_code=404, detail='User not found')
-        if not (user.is_active):
-            raise HTTPException(status_code=404, detail='User not found')
+        if await redis.is_blacklisted(payload["jti"]):
+            raise HTTPException(status_code=401, detail="Invalid token")
+        user = await repo.get_user_by_id(payload["sub"])
+        if user is None or not user.is_active:
+            raise HTTPException(status_code=401, detail="Invalid token")
         return user
     except InvalidToken:
-        raise HTTPException(status_code=401, detail='Invalid token')
+        raise HTTPException(status_code=401, detail="Invalid token")

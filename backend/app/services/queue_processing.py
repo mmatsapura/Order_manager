@@ -38,7 +38,7 @@ class QueueProcessingService:
         ntype: NotificationType,
         message: str | None,
     ) -> Notification:
-        await self.notif_service.create_notification(
+        return await self.notif_service.create_notification(
             Notification(order_id=order_id, type=ntype, message=message)
         )
 

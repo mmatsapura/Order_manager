@@ -16,11 +16,11 @@ class OrderRepository:
     def format_order(order: dict) -> Order:
         return Order(id=str(order['_id']), order_id=order['order_id'], customer_name=order['customer_name'], customer_email=order['customer_email'], items=order['items'], total_price=order['total_price'], status=order['status'], retry_count=order.get('retry_count', 0), error_message=order.get('error_message', None), processed_at=order.get('processed_at', None), created_at=order['created_at'], updated_at=order['updated_at'])
 
-    async def get_order_by_id(self, order_id: str) -> Order:
+    async def get_order_by_id(self, order_id: str) -> Order | None:
         doc = await self.orders.find_one({'order_id': order_id})
         if doc:
             return self.format_order(doc)
-        return
+        return None
 
     async def get_list_of_orders(self, query: OrderListQuery) -> tuple[(list[Order], int)]:
         filters = {}
@@ -61,8 +61,9 @@ class OrderRepository:
         retry_attempts = 0
         avg_ms = None
         for row in rows:
-            name = row['_id'] or 'Unknown'
-            by_status[name] = row['count']
+            name = row.get('_id') or 'Unknown'
+            if name in by_status:
+                by_status[name] = row['count']
             retry_attempts += row.get('retries', 0)
             if name == OrderStatus.COMPLETED.value and row.get('avg_processing_ms') is not None:
                 avg_ms = row['avg_processing_ms']

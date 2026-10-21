@@ -13,12 +13,14 @@ export function HealthPanel({ auto = false }: { auto?: boolean }) {
       </button>
       {error && <p className="alert-error">{error}</p>}
       {health && (
-        <div className="detail-grid">
-          <HealthField label="Status" value={health.status} />
-          <HealthField label="API" value={health.api} />
-          <HealthField label="MongoDB" value={health.mongodb} />
-          <HealthField label="RabbitMQ" value={health.rabbitmq} />
-          <HealthField label="Redis" value={health.redis} />
+        <div className="card">
+          <div className="detail-grid">
+            <HealthField label="Status" value={health.status} />
+            <HealthField label="API" value={health.api} />
+            <HealthField label="MongoDB" value={health.mongodb} />
+            <HealthField label="RabbitMQ" value={health.rabbitmq} />
+            <HealthField label="Redis" value={health.redis} />
+          </div>
         </div>
       )}
     </div>

@@ -7,6 +7,7 @@ from app.core.exceptions import (
     OrderCannotBeUpdated,
     OrderNotFound,
     ProductNotFound,
+    QueueUnavailable,
 )
 from app.dependencies import (
     get_current_user,
@@ -141,6 +142,8 @@ async def create_order(
         return await service.create_order(order=body)
     except ProductNotFound:
         raise HTTPException(status_code=400, detail="Unknown product")
+    except QueueUnavailable:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Queue unavailable")
 
 
 @router.delete("/{order_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -173,3 +176,5 @@ async def update_order(order_id: str, body: OrderUpdate,
         raise HTTPException(status_code=404, detail="Order not found")
     except OrderCannotBeUpdated:
         raise HTTPException(status_code=409, detail="Status transition not allowed")
+    except QueueUnavailable:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Queue unavailable")
