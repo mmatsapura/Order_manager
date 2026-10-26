@@ -7,3 +7,4 @@ export function QueryProvider({ children }: { children: ReactNode }) {
   const [client] = useState(() => new QueryClient());
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }
+// Create global client for queries and pass it through context

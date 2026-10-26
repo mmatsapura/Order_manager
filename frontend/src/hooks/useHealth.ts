@@ -7,7 +7,7 @@ import type { HealthPublic } from "@/types/health";
 export function useHealth(auto = false) {
   const query = useQuery({
     queryKey: ["health"],
-    enabled: auto,
+    enabled: auto, // only run by button
     queryFn: async () => {
       const res = await api("/health");
       return (await res.json()) as HealthPublic;
@@ -18,6 +18,6 @@ export function useHealth(auto = false) {
     health: query.data ?? null,
     error: query.error instanceof Error ? query.error.message : null,
     loading: query.isFetching,
-    check: () => query.refetch(),
+    check: () => query.refetch(), // query on purpose
   };
 }

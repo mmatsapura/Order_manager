@@ -24,8 +24,8 @@ export function AnalyticsCards() {
     { label: "Retry attempts", value: data.retry_attempts },
   ];
 
-  const statuses = Object.entries(data.by_status);
-
+  const statuses = Object.entries(data.by_status); // array of [status, count] unpacking
+    // 1 block stats in general 2 block statuses
   return (
     <>
       <div className="stats-grid">

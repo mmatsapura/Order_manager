@@ -14,8 +14,19 @@ function formatDate(value: string) {
 export default function OrderDetailsPage() {
   const params = useParams<{ orderId: string }>();
   const orderId = params.orderId;
-  const { order, events, notifications, error, actionError, cancelling, canCancel, cancel } =
-    useOrder(orderId);
+  const {
+    order,
+    events,
+    notifications,
+    error,
+    actionError,
+    cancelling,
+    requeueing,
+    canCancel,
+    canRequeue,
+    cancel,
+    requeue,
+  } = useOrder(orderId);
 
   if (error) {
     return (
@@ -54,6 +65,16 @@ export default function OrderDetailsPage() {
                 disabled={cancelling}
               >
                 {cancelling ? "Cancelling..." : "Cancel order"}
+              </button>
+            )}
+            {canRequeue && (
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => requeue()}
+                disabled={requeueing}
+              >
+                {requeueing ? "Requeueing..." : "Requeue"}
               </button>
             )}
           </div>

@@ -6,6 +6,7 @@ import { apiJson } from "@/lib/api";
 import { orderQueryFromParams, PAGE_SIZE } from "@/lib/order-query";
 import type { OrderCreate, OrderListQuery, OrderListResponse } from "@/types/order";
 
+///orders?status=Processing&page=2&limit=20.  result and goal of this function
 function toPath(query: OrderListQuery): string {
   const params = new URLSearchParams();
   if (query.email) params.set("email", query.email);
@@ -16,6 +17,7 @@ function toPath(query: OrderListQuery): string {
   return `/orders?${params.toString()}`;
 }
 
+//helper hook
 export function useOrderListParams(): OrderListQuery {
   return orderQueryFromParams(useSearchParams());
 }

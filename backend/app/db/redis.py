@@ -32,7 +32,7 @@ class RedisDB:
 
     async def close(self):
         if self._client is not None:
-            await self._client.close()
+            await self._client.aclose()
             self._client = None
             return
         return

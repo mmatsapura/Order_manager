@@ -8,7 +8,7 @@ import type { NotificationPublic } from "@/types/notification";
 const CANCELLABLE = new Set(["Created", "Queued", "Processing"]);
 
 export function useOrder(orderId: string) {
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient();// 3 parallel queries
   const orderQuery = useQuery({
     queryKey: ["order", orderId],
     queryFn: () => apiJson<OrderPublic>(`/orders/${orderId}`),

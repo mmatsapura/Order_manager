@@ -1,6 +1,6 @@
 services:
   mongo:
-    image: mongo:7
+    image: mongo:latest
     restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-admin}
@@ -8,7 +8,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongo_data:/data/db
+      - mongo-data:/data/db
     healthcheck:
       test:
         [
@@ -114,6 +114,6 @@ services:
       - backend
 
 volumes:
-  mongo_data:
+  mongo-data:
   redis_data:
   rabbit_data:

@@ -1,7 +1,7 @@
 // Service analog
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation"; //  redirect with code
 import { api } from "@/lib/api";
 import { setToken, clearToken } from "@/lib/auth";
 import type { LoginRequest, TokenResponse } from "@/types/auth";
@@ -23,6 +23,19 @@ export function useAuth() {
         router.push("/orders");
       }
 
+    async function register(body: LoginRequest) {
+        const res = await api("/auth/register", {
+            method: "POST",
+            body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            const detail = err.detail;
+            throw new Error(typeof detail === "string" ? detail : "Registration failed");
+        }
+        await login(body);
+    }
+
     async function logout() {
         try {
             await api("/auth/logout", { method:"POST"});
@@ -32,5 +45,5 @@ export function useAuth() {
         }
         
     }
-        return { login, logout };
+        return { login, register, logout }; //return method for future usage
     }

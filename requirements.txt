@@ -13,7 +13,7 @@ email-validator==2.1.0.post1
     # via pydantic
 fastapi==0.110.0
     # via -r requirements.in
-h11==0.14.0
+h11==0.16.0
     # via uvicorn
 idna==3.4
     # via
@@ -46,3 +46,7 @@ pwdlib[argon2]
 
 aio-pika
 redis
+
+pytest
+pytest-asyncio
+httpx

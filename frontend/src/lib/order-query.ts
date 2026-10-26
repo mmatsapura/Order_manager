@@ -1,6 +1,6 @@
 import type { OrderListQuery, OrderStatus } from "@/types/order";
 
-export const PAGE_SIZE = 20;
+export const PAGE_SIZE = 20; // pagination
 
 const STATUSES = new Set<OrderStatus>([
   "Created",
@@ -10,7 +10,7 @@ const STATUSES = new Set<OrderStatus>([
   "Failed",
   "Cancelled",
 ]);
-
+//convert query params to schemas on backend
 export function orderQueryFromParams(params: URLSearchParams): OrderListQuery {
   const status = params.get("status");
   const page = Number(params.get("page") ?? "1");
@@ -23,17 +23,17 @@ export function orderQueryFromParams(params: URLSearchParams): OrderListQuery {
   };
 }
 
-const ORDER_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ORDER_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i; //uuid
 
 export function searchToQuery(search: string, status: string): OrderListQuery {
   const value = search.trim();
   const query: OrderListQuery = { page: 1, limit: PAGE_SIZE };
-  if (ORDER_ID.test(value)) query.order_id = value;
+  if (ORDER_ID.test(value)) query.order_id = value; // check what we are searching
   else if (value) query.email = value;
   if (STATUSES.has(status as OrderStatus)) query.status = status as OrderStatus;
   return query;
 }
-
+//Save link
 export function orderQueryToPath(query: OrderListQuery): string {
   const params = new URLSearchParams();
   if (query.email) params.set("email", query.email);

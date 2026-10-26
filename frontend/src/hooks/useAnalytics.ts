@@ -6,9 +6,9 @@ import type { AnalyticsPublic } from "@/types/analytics";
 
 export function useAnalytics() {
   const query = useQuery({
-    queryKey: ["analytics"],
+    queryKey: ["analytics"], // key for cache
     queryFn: () => apiJson<AnalyticsPublic>("/analytics"),
-    refetchInterval: 3000,
+    refetchInterval: 3000, // every 3 miliseconds ask
   });
 
   return {
